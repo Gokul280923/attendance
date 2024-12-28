@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System</title>
+    <style>
+        /* General styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background-color: #f8f9fa;
+        }
+
+        /* Top black band */
+        .top-band {
+            width: 100%;
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .top-band img {
+            height: 50px; /* Adjust logo height */
+        }
+
+        /* Main content styles */
+        .content {
+            margin-top: 100px; /* To avoid overlapping with the top band */
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        /* Button container styles */
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        button {
+            font-size: 1rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 80%;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Black band with logo -->
+    <div class="top-band">
+        <img src="static/uploads/ferrocon.png" alt="Logo"> <!-- Replace 'logo.png' with your actual logo file path -->
+    </div>
+
+    <!-- Main content -->
+    <div class="content">
+        <h1>WORKER ATTENDANCE SYSTEM </h1>
+        <div class="buttons">
+            <button onclick="location.href='{{ url_for('add_remove_worker') }}'">Add/Remove Worker</button>
+            <button onclick="location.href='{{ url_for('add_remove_attendance') }}'">Add/Remove Attendance</button>
+            <button onclick="location.href='{{ url_for('view_attendance') }}'">View Attendance</button>
+        </div>
+    </div>
+</body>
+</html>

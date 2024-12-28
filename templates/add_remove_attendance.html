@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        .attendance-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .attendance-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .attendance-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .attendance-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .form-buttons button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .form-buttons button:hover {
+            background-color: #45a049;
+        }
+
+        .back-button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #0b7dda;
+        }
+
+        .present-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h2>Worker Attendance</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Attendance Form -->
+    <form method="POST" class="attendance-form">
+        <div class="form-group">
+            <label for="attendance_date">Date:</label>
+            <input type="date" id="attendance_date" name="attendance_date" required max="">
+        </div>
+        
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Present</th>
+                    <th>Half Day</th>
+                    <th>Absent</th>
+                    <th>Overtime Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for worker in workers %}
+                <tr>
+                    <td>{{ worker[1] }}</td>
+                    <td>{{ worker[4] }}</td>
+                    <td>
+                        <input type="checkbox" 
+                               name="present_{{ worker[0] }}" 
+                               class="present-checkbox attendance-option-{{ worker[0] }}"
+                               onchange="handleAttendanceChange(this, {{ worker[0] }})">
+                    </td>
+                    <td>
+                        <input type="checkbox" 
+                               name="half_day_{{ worker[0] }}" 
+                               class="present-checkbox attendance-option-{{ worker[0] }}"
+                               onchange="handleAttendanceChange(this, {{ worker[0] }})">
+                    </td>
+                    <td>
+                        <input type="checkbox" 
+                               name="absent_{{ worker[0] }}" 
+                               class="present-checkbox attendance-option-{{ worker[0] }}"
+                               onchange="handleAttendanceChange(this, {{ worker[0] }})">
+                    </td>
+                    <td>
+                        <input type="number" 
+                               name="overtime_{{ worker[0] }}" 
+                               min="0" 
+                               max="12" 
+                               step="0.5" 
+                               style="width: 70px;">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="form-buttons">
+            <button type="submit">Save Attendance</button>
+        </div>
+    </form>
+
+    <a href="{{ url_for('index') }}" class="back-button">Go Back</a>
+
+    <script>
+        // Function to handle attendance changes
+        function handleAttendanceChange(checkbox, workerId) {
+            // Uncheck all other checkboxes in the same row
+            const checkboxes = document.getElementsByClassName(`attendance-option-${workerId}`);
+            Array.from(checkboxes).forEach(box => {
+                if (box !== checkbox) {
+                    box.checked = false;
+                }
+            });
+        }
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(event) {
+            const date = document.getElementById('attendance_date').value;
+            if (!date) {
+                alert('Please select a date');
+                event.preventDefault();
+                return;
+            }
+
+            // Prevent future dates and today's date
+            const selectedDate = new Date(date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (selectedDate >= today) {
+                alert('Can only mark attendance for previous days');
+                event.preventDefault();
+                return;
+            }
+
+            // Validate that each worker has exactly one attendance option selected
+            const workers = document.querySelectorAll('.attendance-table tbody tr');
+            let valid = true;
+
+            workers.forEach(worker => {
+                const workerId = worker.querySelector('input[type="checkbox"]').name.split('_')[1];
+                const checkedBoxes = Array.from(document.getElementsByClassName(`attendance-option-${workerId}`))
+                    .filter(box => box.checked);
+
+                if (checkedBoxes.length !== 1) {
+                    valid = false;
+                }
+            });
+
+            if (!valid) {
+                alert('Please select exactly one attendance option for each worker');
+                event.preventDefault();
+                return;
+            }
+        });
+
+        // Set max date to yesterday and default date to yesterday
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // Format yesterday's date as YYYY-MM-DD for the max attribute
+        const formattedYesterday = yesterday.toISOString().split('T')[0];
+
+        const dateInput = document.getElementById('attendance_date');
+        dateInput.max = formattedYesterday;
+        dateInput.valueAsDate = yesterday;
+
+        
+    </script>
+</body>
+</html>

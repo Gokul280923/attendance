@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add/Remove Worker</title>
+    <style>
+        /* All your existing styles remain the same */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        .worker-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+        }
+
+        .wage-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .wage-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+        }
+
+        .form-buttons button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-buttons button:hover {
+            background-color: #45a049;
+        }
+
+        .worker-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .worker-list li {
+            background: white;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-button {
+            background-color: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .remove-button:hover {
+            background-color: #da190b;
+        }
+
+        .back-button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #0b7dda;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .edit-mode {
+            background-color: #fff3cd;
+        }
+        .edit-controls {
+            display: none;
+            margin-left: 10px;
+        }
+        .edit-mode .edit-controls {
+            display: inline-block;
+        }
+        .edit-mode .display-info {
+            display: none;
+        }
+        .edit-button {
+            background-color: #ffc107;
+            color: black;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .save-button {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .cancel-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>Add a Worker</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                {% for category, message in messages %}
+                    alert("{{ message }}");
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" class="worker-form" id="workerForm">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone Number:</label>
+            <input type="tel" name="phone" id="phone" pattern="[0-9]{10}" required 
+                   title="Please enter a valid 10-digit phone number">
+        </div>
+
+        <div class="form-group">
+            <label for="aadhar">Aadhar:</label>
+            <input type="text" name="aadhar" id="aadhar" pattern="[0-9]{12}" required
+                   title="Please enter a valid 12-digit Aadhar number">
+        </div>
+
+        <div class="form-group">
+            <label for="wage">Daily Wage (₹):</label>
+            <input type="number" name="wage" id="wage" class="wage-input" required
+                   min="0" step="0.01" title="Please enter the daily wage amount">
+        </div>
+
+        <div class="form-group">
+            <label for="photo">Photo:</label>
+            <input type="file" name="photo" id="photo" accept="image/*" required>
+        </div>
+
+        <div class="form-group">
+            <label for="role">Role:</label>
+            <select name="role" id="role" required>
+                <option value="" disabled selected>Select a role</option>
+                <option value="Carpenter">Carpenter</option>
+                <option value="Mould">Mould</option>
+                <option value="Production">Production</option>
+                <option value="Painting">Painting</option>
+                <option value="Putty">Putty</option>
+            </select>
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" name="action" value="Add">Add Worker</button>
+        </div>
+    </form>
+
+    <h3>Current Workers:</h3>
+    <ul class="worker-list">
+        {% for worker in workers %}
+        <li id="worker-{{ worker[0] }}">
+            <div class="display-info">
+                <span>{{ worker[1] }} - {{ worker[4] }} - ₹{{ worker[6] }}/day</span>
+            </div>
+            <div class="edit-controls">
+                <select name="edit-role" class="edit-role">
+                    <option value="Carpenter" {% if worker[4] == 'Carpenter' %}selected{% endif %}>Carpenter</option>
+                    <option value="Mould" {% if worker[4] == 'Mould' %}selected{% endif %}>Mould</option>
+                    <option value="Production" {% if worker[4] == 'Production' %}selected{% endif %}>Production</option>
+                    <option value="Painting" {% if worker[4] == 'Painting' %}selected{% endif %}>Painting</option>
+                    <option value="Putty" {% if worker[4] == 'Putty' %}selected{% endif %}>Putty</option>
+                </select>
+                <input type="number" name="edit-wage" class="edit-wage" value="{{ worker[6] }}" min="0" step="0.01">
+                <button class="save-button" onclick="saveWorker({{ worker[0] }})">Save</button>
+                <button class="cancel-button" onclick="cancelEdit({{ worker[0] }})">Cancel</button>
+            </div>
+            <div>
+                <button class="edit-button" onclick="enableEdit({{ worker[0] }})">Edit</button>
+                <form method="POST" class="remove-form" style="display: inline;">
+                    <input type="hidden" name="worker_id" value="{{ worker[0] }}">
+                    <button type="submit" name="action" value="Remove" class="remove-button"
+                            onclick="return confirm('Are you sure you want to remove this worker?');">
+                        Remove
+                    </button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <button onclick="location.href='{{ url_for('index') }}'" class="back-button">Go Back</button>
+
+    <script>
+        // Client-side validation
+        document.getElementById('phone').addEventListener('input', function() {
+            if (this.value.length > 0 && !/^[0-9]{10}$/.test(this.value)) {
+                this.setCustomValidity('Please enter exactly 10 digits');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        document.getElementById('aadhar').addEventListener('input', function() {
+            if (this.value.length > 0 && !/^[0-9]{12}$/.test(this.value)) {
+                this.setCustomValidity('Please enter exactly 12 digits');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Add wage validation
+        document.getElementById('wage').addEventListener('input', function() {
+            if (this.value < 0) {
+                this.setCustomValidity('Wage cannot be negative');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Preview image before upload
+        document.getElementById('photo').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    alert('File size must be less than 5MB');
+                    this.value = '';
+                }
+            }
+        });
+
+        // Form validation before submission
+        document.getElementById('workerForm').addEventListener('submit', function(event) {
+            const phone = document.getElementById('phone').value;
+            const aadhar = document.getElementById('aadhar').value;
+            const role = document.getElementById('role').value;
+            const wage = document.getElementById('wage').value;
+
+            if (!/^[0-9]{10}$/.test(phone)) {
+                alert('Please enter a valid 10-digit phone number');
+                event.preventDefault();
+                return;
+            }
+
+            if (!/^[0-9]{12}$/.test(aadhar)) {
+                alert('Please enter a valid 12-digit Aadhar number');
+                event.preventDefault();
+                return;
+            }
+
+            if (!role) {
+                alert('Please select a role');
+                event.preventDefault();
+                return;
+            }
+
+            if (wage < 0) {
+                alert('Wage cannot be negative');
+                event.preventDefault();
+                return;
+            }
+        });
+
+        // Edit functionality
+        function enableEdit(workerId) {
+            const workerElement = document.getElementById(`worker-${workerId}`);
+            workerElement.classList.add('edit-mode');
+        }
+
+        function cancelEdit(workerId) {
+            const workerElement = document.getElementById(`worker-${workerId}`);
+            workerElement.classList.remove('edit-mode');
+        }
+
+        function saveWorker(workerId) {
+            const workerElement = document.getElementById(`worker-${workerId}`);
+            const role = workerElement.querySelector('.edit-role').value;
+            const wage = workerElement.querySelector('.edit-wage').value;
+
+            fetch('/update_worker', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    worker_id: workerId,
+                    role: role,
+                    wage: wage
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the display info
+                    const displayInfo = workerElement.querySelector('.display-info span');
+                    displayInfo.textContent = `${data.name} - ${role} - ₹${wage}/day`;
+                    
+                    // Exit edit mode
+                    workerElement.classList.remove('edit-mode');
+                    
+                    // Show success message
+                    alert('Worker information updated successfully!');
+                } else {
+                    alert('Error updating worker: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error updating worker: ' + error);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>View Attendance</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+/* Styling for the Back Button Container */
+.back-button-container {
+    display: flex;
+    justify-content: center;   /* Center the button */
+    margin-top: 20px;           /* Add space above the button */
+}
+
+/* Styling for the Back Button */
+.back-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    width: auto;                /* Default width */
+}
+
+/* Hover effect */
+.back-button:hover {
+    background-color: #45a049;
+}
+
+/* Responsive Back Button for Mobile */
+@media screen and (max-width: 600px) {
+    .back-button {
+        width: 100%;            /* Full width on small screens */
+        padding: 12px 25px;
+        font-size: 18px;
+    }
+}
+
+
+        .date-filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 400px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .summary-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c5282;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 400px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .worker-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .percentage {
+            font-weight: bold;
+        }
+
+        .percentage.good {
+            color: #28a745;
+        }
+
+        .percentage.warning {
+            color: #ffc107;
+        }
+
+        .percentage.poor {
+            color: #dc3545;
+        }
+
+        .currency {
+            font-family: monospace;
+        }
+
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .filter-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        @media screen and (max-width: 1024px) {
+            .container {
+                margin: 10px;
+                padding: 10px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                margin-bottom: 10px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            h2 {
+                font-size: 1.5em;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            
+            .worker-photo {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media print {
+            .filters {
+                display: none;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            table {
+                font-size: 10pt;
+            }
+        }
+
+        .sortable {
+        cursor: pointer;
+        position: relative;
+        padding-right: 20px !important;
+    }
+
+    .sortable::after {
+        content: '↕';
+        position: absolute;
+        right: 5px;
+        color: #999;
+    }
+
+    .sortable.asc::after {
+        content: '↑';
+        color: #333;
+    }
+
+    .sortable.desc::after {
+        content: '↓';
+        color: #333;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Attendance Records</h2>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label for="date-from">From Date:</label>
+                <input type="date" id="date-from">
+            </div>
+            <div class="filter-group">
+                <label for="date-to">To Date:</label>
+                <input type="date" id="date-to">
+            </div>
+            <div class="filter-group">
+                <label for="name-search">Search Name:</label>
+                <input type="text" id="name-search" placeholder="Enter name...">
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Normal Wages</h3>
+                <div class="value">₹{{ "{:,.2f}".format(total_normal_wage) }}</div>
+            </div>
+            <div class="summary-card">
+                <h3>Total OT Wages</h3>
+                <div class="value">₹{{ "{:,.2f}".format(total_ot_wage) }}</div>
+            </div>
+            <div class="summary-card">
+                <h3>Total Expenditure</h3>
+                <div class="value">₹{{ "{:,.2f}".format(total_expenditure) }}</div>
+            </div>
+        </div>
+
+        <!-- Charts Container -->
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <canvas id="departmentChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="otHoursChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Department
+                        <select id="department-filter" class="filter-select">
+                            <option value="all" {% if selected_department == 'all' %}selected{% endif %}>All</option>
+                            {% for dept in unique_departments %}
+                                <option value="{{ dept }}" {% if dept == selected_department %}selected{% endif %}>{{ dept }}</option>
+                            {% endfor %}
+                        </select>
+                    </th>
+                    <th class="sortable" data-sort="attendance">Attendance %</th>
+                    <th>Full Days</th>
+                    <th>Half Days</th>
+                    <th class="sortable" data-sort="othours">OT Hours</th>
+                    <th>Normal Wage</th>
+                    <th>OT Wage</th>
+                    <th>Total Wage</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in attendance_records %}
+                <tr>
+                    <td>
+                        <img src="{{ record['photo'] }}" alt="Worker photo" class="worker-photo">
+                    </td>
+                    <td data-label="Name">{{ record['name'] }}</td>
+                    <td data-label="Department">{{ record['department'] }}</td>
+                    <td data-label="Attendance %" class="percentage {{ 'good' if record['attendance_percentage'] >= 90 
+                                          else 'warning' if record['attendance_percentage'] >= 75 
+                                          else 'poor' }}">
+                        {{ "%.1f"|format(record['attendance_percentage']) }}%
+                    </td>
+                    <td data-label="Full Days">{{ record['full_days'] }}</td>
+                    <td data-label="Half Days">{{ record['half_days'] }}</td>
+                    <td data-label="OT Hours">{{ "%.1f"|format(record['total_ot_hours']) }}</td>
+                    <td data-label="Normal Wage" class="currency">₹{{ "{:,.2f}".format(record['normal_wage']) }}</td>
+                    <td data-label="OT Wage" class="currency">₹{{ "{:,.2f}".format(record['ot_wage']) }}</td>
+                    <td data-label="Total Wage" class="currency">₹{{ "{:,.2f}".format(record['total_wage']) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add this below your form -->
+<div class="back-button-container">
+    <a href="{{ url_for('index') }}" class="back-button">Go Back</a>
+</div>
+
+
+    <script>
+        // Initialize department chart
+        const ctx = document.getElementById('departmentChart').getContext('2d');
+        let departmentChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: {{ department_labels | tojson }},
+                datasets: [{
+                    data: {{ department_values | tojson }},
+                    backgroundColor: [
+                        '#4299E1',
+                        '#48BB78',
+                        '#ECC94B',
+                        '#ED8936',
+                        '#9F7AEA',
+                        '#ED64A6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Department-wise Expenditure',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += '₹' + context.raw.toFixed(2);
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    
+        // Initialize OT hours chart
+        const otCtx = document.getElementById('otHoursChart').getContext('2d');
+        let otHoursChart = new Chart(otCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ ot_hours_labels | tojson }},
+                datasets: [{
+                    data: {{ ot_hours_values | tojson }},
+                    backgroundColor: [
+                        '#4299E1',
+                        '#48BB78',
+                        '#ECC94B',
+                        '#ED8936',
+                        '#9F7AEA',
+                        '#ED64A6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Department-wise OT Hours',
+                        font: {
+                            size: 16
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw.toFixed(1) + ' hours';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    
+        // Sorting functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const getCellValue = (tr, idx) => {
+                const cell = tr.children[idx];
+                // Remove currency symbol and commas for number parsing
+                const text = cell.innerText.replace(/[₹%,]/g, '');
+                // Parse as number if possible, otherwise use text
+                return isNaN(text) ? text.toLowerCase() : parseFloat(text);
+            };
+    
+            const comparer = (idx, asc) => (a, b) => {
+                const v1 = getCellValue(asc ? a : b, idx);
+                const v2 = getCellValue(asc ? b : a, idx);
+                return typeof v1 === 'string' && typeof v2 === 'string' ? 
+                       v1.localeCompare(v2) : v1 - v2;
+            };
+    
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const table = th.closest('table');
+                    const tbody = table.querySelector('tbody');
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const idx = Array.from(th.parentNode.children).indexOf(th);
+                    
+                    // Remove asc/desc classes from all headers
+                    th.parentNode.querySelectorAll('th').forEach(header => {
+                        if (header !== th) {
+                            header.classList.remove('asc', 'desc');
+                        }
+                    });
+    
+                    // Toggle sort direction
+                    const isAsc = !th.classList.contains('asc');
+                    th.classList.toggle('asc', isAsc);
+                    th.classList.toggle('desc', !isAsc);
+    
+                    // Sort rows
+                    rows.sort(comparer(idx, isAsc));
+                    tbody.append(...rows);
+                });
+            });
+        });
+    
+        // Date filtering functionality
+        document.getElementById('date-from').addEventListener('change', fetchFilteredData);
+        document.getElementById('date-to').addEventListener('change', fetchFilteredData);
+        document.getElementById('name-search').addEventListener('input', filterTableByName);
+    
+        function fetchFilteredData() {
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+            
+            if (dateFrom && dateTo) {
+                fetch(`/get_filtered_data?date_from=${dateFrom}&date_to=${dateTo}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updateTable(data.attendance_records);
+                        updateSummaryCards(data);
+                        updateDepartmentChart(data);
+                        updateOTHoursChart(data);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+    
+        function updateOTHoursChart(data) {
+            otHoursChart.data.labels = data.ot_hours_labels;
+            otHoursChart.data.datasets[0].data = data.ot_hours_values;
+            otHoursChart.update();
+        }
+    
+        function updateTable(records) {
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            records.forEach(record => {
+                const row = document.createElement('tr');
+                const attendancePercentage = record.attendance_percentage || 0;
+                let percentageClass = 'poor';
+                if (attendancePercentage >= 90) {
+                    percentageClass = 'good';
+                } else if (attendancePercentage >= 75) {
+                    percentageClass = 'warning';
+                }
+    
+                row.innerHTML = `
+                    <td><img src="${record.photo}" alt="Worker photo" class="worker-photo"></td>
+                    <td>${record.name}</td>
+                    <td>${record.department}</td>
+                    <td class="percentage ${percentageClass}">${attendancePercentage.toFixed(1)}%</td>
+                    <td>${record.full_days}</td>
+                    <td>${record.half_days}</td>
+                    <td>${record.total_ot_hours.toFixed(1)}</td>
+                    <td class="currency">₹${record.normal_wage.toFixed(2)}</td>
+                    <td class="currency">₹${record.ot_wage.toFixed(2)}</td>
+                    <td class="currency">₹${record.total_wage.toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Reapply current sort if any header is sorted
+            const sortedHeader = document.querySelector('th.sortable.asc, th.sortable.desc');
+            if (sortedHeader) {
+                sortedHeader.click();
+            }
+            
+            // Reapply name filter after updating table
+            filterTableByName();
+        }
+    
+        function updateSummaryCards(data) {
+            document.querySelector('.summary-cards').innerHTML = `
+                <div class="summary-card">
+                    <h3>Total Normal Wages</h3>
+                    <div class="value">₹${data.total_normal_wage.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total OT Wages</h3>
+                    <div class="value">₹${data.total_ot_wage.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Expenditure</h3>
+                    <div class="value">₹${data.total_expenditure.toFixed(2)}</div>
+                </div>
+            `;
+        }
+    
+        function updateDepartmentChart(data) {
+            departmentChart.data.labels = data.department_labels;
+            departmentChart.data.datasets[0].data = data.department_values;
+            departmentChart.update();
+        }
+    
+        function filterTableByName() {
+            const nameSearch = document.getElementById('name-search').value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const name = row.children[1].textContent.toLowerCase();
+                row.style.display = name.includes(nameSearch) ? '' : 'none';
+            });
+        }
+    
+        // Touch support for mobile scrolling
+        if ('ontouchstart' in window) {
+            const table = document.querySelector('table');
+            let startX;
+            let scrollLeft;
+    
+            table.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].pageX - table.offsetLeft;
+                scrollLeft = table.scrollLeft;
+            });
+    
+            table.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const x = e.touches[0].pageX - table.offsetLeft;
+                const walk = (x - startX) * 2;
+                table.scrollLeft = scrollLeft - walk;
+            });
+        }
+    
+        // Department filter
+        document.getElementById('department-filter').addEventListener('change', function() {
+            const department = this.value;
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('department', department);
+            window.location.href = currentUrl.toString();
+        });
+    </script>
+</body>
+</html>
