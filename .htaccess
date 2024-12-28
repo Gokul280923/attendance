@@ -1,0 +1,11 @@
+# Existing Passenger configuration
+<IfModule mod_passenger.c>
+    PassengerEnabled on
+    PassengerPython /usr/bin/python3
+</IfModule>
+
+# Authentication
+AuthType Basic
+AuthName "Restricted Area"
+AuthUserFile C:\Users\gokul\OneDrive\Desktop\attendace\.htpasswd
+Require valid-user
