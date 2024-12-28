@@ -596,4 +596,4 @@ def get_filtered_data():
             'total_expenditure': total_expenditure
         })
 if __name__ == '__main__':
-    app.run(debug=False,host="0.0.0.0")
+    app.run(debug=True)
