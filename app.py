@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, flash, url_for, jsonify
-from flask_ngrok import run_with_ngrok
 import sqlite3
 import os
 from datetime import datetime
@@ -7,7 +6,6 @@ from contextlib import contextmanager
 from collections import defaultdict
 
 app = Flask(__name__)
-run_with_ngrok(app)
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 app.secret_key = 'ferrocon@123'
 
@@ -598,4 +596,4 @@ def get_filtered_data():
             'total_expenditure': total_expenditure
         })
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False,host="0.0.0.0")
